@@ -1,0 +1,10 @@
+fastapi
+pydantic
+python-dotenv
+langchain
+langgraph
+langchain-google-genai
+langchain-tavily
+langsmith
+google-generativeai
+uvicorn

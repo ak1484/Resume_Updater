@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Updater Agent</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        #result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Resume Updater Agent</h1>
+    <input type="text" id="userQuery" placeholder="Enter your query..." size="40">
+    <button onclick="sendQuery()">Ask Agent</button>
+    <div id="result"></div>
+
+    <!-- Update Mermaid diagram section for structured supervisor logic -->
+    <h2>Agent Graph Structure</h2>
+    <div class="mermaid">
+    graph TD
+      START["START"] --> supervisor["supervisor (Gemini structured output)"]
+      supervisor -- action: chatbot --> chatbot["chatbot (Gemini LLM with tools)"]
+      supervisor -- action: tools --> invoke_tool["invoke_tool (tool call, tool execution, summarization)"]
+      supervisor -- action: end --> END["END"]
+      chatbot --> supervisor
+      invoke_tool --> supervisor
+    </div>
+
+    <!-- Load Mermaid.js if not already present -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <script>
+        async function sendQuery() {
+            const query = document.getElementById('userQuery').value;
+            const response = await fetch('/agent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            const data = await response.json();
+            document.getElementById('result').innerText = data.result;
+        }
+    </script>
+</body>
+</html> 
