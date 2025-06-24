@@ -55,6 +55,7 @@ coverage.xml
 
 # VS Code
 .vscode/
+.idx/
 
 # Mac
 .DS_Store
