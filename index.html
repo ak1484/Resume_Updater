@@ -5,15 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Updater Agent</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        #result { margin-top: 20px; font-weight: bold; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        #result { 
+            margin-top: 20px; 
+            padding: 15px;
+            background: #fff;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #humanInputSection {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4ff;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <h1>Resume Updater Agent</h1>
-    <input type="text" id="userQuery" placeholder="Enter your query..." size="40">
-    <button onclick="sendQuery()">Ask Agent</button>
-    <div id="result"></div>
+    
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="userQuery" placeholder="Enter your query about resume updates..." size="40">
+            <button onclick="sendQuery()">Ask Agent</button>
+        </div>
+        
+        <div id="result"></div>
+
+        <!-- Human Input Section -->
+        <div id="humanInputSection">
+            <h3>Human Input Required</h3>
+            <textarea id="humanInput" rows="4" placeholder="Enter your response here..."></textarea>
+            <button onclick="submitHumanInput()">Submit Response</button>
+        </div>
+    </div>
 
     <!-- Update Mermaid diagram section for structured supervisor logic -->
     <h2>Agent Graph Structure</h2>
@@ -22,27 +81,65 @@
       START["START"] --> supervisor["supervisor (Gemini structured output)"]
       supervisor -- action: chatbot --> chatbot["chatbot (Gemini LLM with tools)"]
       supervisor -- action: tools --> invoke_tool["invoke_tool (tool call, tool execution, summarization)"]
+      supervisor -- action: human_input --> human["Human Input Required"]
       supervisor -- action: end --> END["END"]
       chatbot --> supervisor
       invoke_tool --> supervisor
+      human --> supervisor
     </div>
 
     <!-- Load Mermaid.js if not already present -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
-      mermaid.initialize({ startOnLoad: true });
+        mermaid.initialize({ startOnLoad: true });
     </script>
 
     <script>
         async function sendQuery() {
             const query = document.getElementById('userQuery').value;
-            const response = await fetch('/agent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query })
-            });
-            const data = await response.json();
-            document.getElementById('result').innerText = data.result;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch('/agent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const data = await response.json();
+                
+                // Check if the response indicates human assistance is needed
+                if (data.result.includes("Human assistance requested")) {
+                    resultDiv.innerText = "Human assistance is required. Please provide your input below:";
+                    document.getElementById('humanInputSection').style.display = 'block';
+                } else {
+                    resultDiv.innerText = data.result;
+                    document.getElementById('humanInputSection').style.display = 'none';
+                }
+            } catch (error) {
+                resultDiv.innerText = "Error: " + error.message;
+            }
+        }
+
+        async function submitHumanInput() {
+            const humanInput = document.getElementById('humanInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            // Here we'll send the human input back to the agent
+            try {
+                const response = await fetch('/agent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        query: "Human input provided: " + humanInput 
+                    })
+                });
+                const data = await response.json();
+                resultDiv.innerText = data.result;
+                document.getElementById('humanInputSection').style.display = 'none';
+                document.getElementById('humanInput').value = '';
+            } catch (error) {
+                resultDiv.innerText = "Error submitting human input: " + error.message;
+            }
         }
     </script>
 </body>
