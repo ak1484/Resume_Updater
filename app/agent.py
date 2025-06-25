@@ -40,10 +40,9 @@ else:
 
 # Set up Google Custom Search tool
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
-if GOOGLE_API_KEY and GOOGLE_CSE_ID:
+
+if GOOGLE_API_KEY :
     os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
-    os.environ["GOOGLE_CSE_ID"] = GOOGLE_CSE_ID
 
 # Set up Tavily API key from .env
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
